@@ -15,7 +15,7 @@ export function isExternal(path) {
  * @returns {Boolean}
  */
 export function validUsername(str) {
-  const valid_map = [process.env.username]
+  const valid_map = [process.env.VUE_APP_USERNAME]
   return valid_map.indexOf(str.trim()) >= 0
 }
 
@@ -24,7 +24,7 @@ export function validUsername(str) {
  * @returns {Boolean}
  */
 export function validPassword(str) {
-  const valid_map = [process.env.password]
+  const valid_map = [process.env.VUE_APP_PASSWORD]
   return valid_map.indexOf(str.trim()) >= 0
 }
 

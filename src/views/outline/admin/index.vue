@@ -229,6 +229,14 @@ export default {
         {
           label: '最近三個月',
           value: 'three_month'
+        },
+        {
+          label: '最近六個月',
+          value: 'six_month'
+        },
+        {
+          label: '最近一年',
+          value: 'twelve_month'
         }
       ],
       timeList: [

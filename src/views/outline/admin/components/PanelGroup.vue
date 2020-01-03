@@ -46,10 +46,16 @@
           <svg-icon icon-class="guide" class-name="card-panel-icon" />
         </div>
         <div class="card-panel-description">
-          <div class="card-panel-text">約會(成功/進行中/失敗)</div>
+          <div class="card-panel-text">約會(成功/等待中/進行中/失敗)</div>
           <count-to
             :start-val="0"
             :end-val="totalDate.success"
+            :duration="1500"
+            class="card-panel-num"
+          />/
+          <count-to
+            :start-val="0"
+            :end-val="totalDate.waiting"
             :duration="1500"
             class="card-panel-num"
           />/
@@ -259,13 +265,23 @@ export default {
 }
 
 @media (max-width: 550px) {
+  .panel-group .card-panel {
+    height: 150px;
+  }
   .card-panel-description {
-    display: none;
+    width: 100% !important;
+    margin: 0px !important;
+    padding: 10px !important;
+  }
+
+  .card-panel-col {
+    padding: 0 10px !important;
   }
 
   .card-panel-icon-wrapper {
+    display: none !important;
     float: none !important;
-    width: 100%;
+    width: 100% !important;
     height: 100%;
     margin: 0 !important;
 

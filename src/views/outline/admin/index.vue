@@ -538,28 +538,28 @@ export default {
         'boy',
         k,
         countDays,
-        'first_use_time',
+        'createdAt',
       )
       const girls = this.calculateList(
         people,
         'girl',
         k,
         countDays,
-        'first_use_time',
+        'createdAt',
       )
       const regist_boys = this.calculateList(
         people,
         'regist_boy',
         k,
         countDays,
-        'first_regist_time',
+        'createdAt',
       )
       const regist_girls = this.calculateList(
         people,
         'regist_girl',
         k,
         countDays,
-        'first_regist_time',
+        'createdAt',
       )
       // 計算轉換率：註冊人數 / 使用人數
       const trans_boys = this.calculateTrans(regist_boys, boys)

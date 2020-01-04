@@ -490,7 +490,9 @@ export default {
             )
           )
         })
-
+        if (i == 0) {
+          console.log(fit)
+        }
         countList.push(fit.length)
       })
       return _.reverse(countList)
@@ -517,7 +519,7 @@ export default {
         )
       })
 
-      console.log(countList)
+      // console.log(countList)
       return _.reverse(countList)
     },
 
@@ -596,38 +598,52 @@ export default {
         'success',
         k,
         countDays,
-        'updatedAt',
+        'createdAt',
       )
       const progress = this.calculateList(
         date,
         'progress',
         k,
         countDays,
-        'updatedAt',
+        'createdAt',
       )
-      const fail = this.calculateList(date, 'fail', k, countDays, 'updatedAt')
+      const waiting = this.calculateList(
+        date,
+        'waiting',
+        k,
+        countDays,
+        'createdAt',
+      )
+      const fail = this.calculateList(date, 'fail', k, countDays, 'createdAt')
 
-      const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')
+      const total = this.calculateList(date, 'total', k, countDays, 'createdAt')
+      console.log(success)
+      console.log(waiting)
+      console.log(progress)
+      console.log(fail)
+      console.log(total)
+      
 
-      // 計算轉換率：約會(成功/進行/失敗) / 總約會
+      // 計算轉換率：約會(成功/等待/進行/失敗) / 總約會
       const trans_success = this.calculateTrans(success, total)
+      const trans_waiting = this.calculateTrans(waiting, total)
       const trans_progress = this.calculateTrans(progress, total)
       const trans_fail = this.calculateTrans(fail, total)
       this.lineChartData.date = [
         {
-          countData: [success, progress, fail],
-          countNames: ['成功約會數', '進行約會數', '失敗約會數'],
+          countData: [success, waiting, progress, fail],
+          countNames: ['成功約會數', '等待約會數', '進行約會數', '失敗約會數'],
           transData: [],
           transNames: [],
           xAxis,
-          colors: ['#51E57B', '#ECC436', '#E72B2B']
+          colors: ['#42f598', '#cf8b1f', '#2966a6', '#e62958']
         },
         {
           countData: [],
           countNames: [],
-          transData: [trans_success, trans_progress, trans_fail],
-          transNames: ['約會成功率', '約會進行中比率', '約會失敗率'],
-          colors: ['#51E57B', '#ECC436', '#E72B2B'],
+          transData: [trans_success, trans_waiting, trans_progress, trans_fail],
+          transNames: ['約會成功率', '約會等待比率', '約會進行中比率', '約會失敗率'],
+          colors: ['#42f598', '#cf8b1f', '#2966a6', '#e62958'],
           xAxis
         }
       ]
@@ -645,7 +661,7 @@ export default {
         'datetime',
       )
       const people = this.calculateList(pay, 'people', k, countDays, 'datetime')
-      console.log(money, people)
+      // console.log(money, people)
       // const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')
 
       // 計算轉換率：約會(成功/進行/失敗) / 總約會
@@ -701,7 +717,7 @@ export default {
           countNames: ['VIP白銀會員', 'VIP黃金會員'],
           transData: [],
           transNames: [],
-          colors: ['#FCEC07', '#82A9AF'],
+          colors: ['#82A9AF', '#FCEC07'],
           xAxis
         },
         {

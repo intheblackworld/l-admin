@@ -1,14 +1,19 @@
 <template>
-  <div :class="className" :style="{height:height,width:width}" />
+  <div class="chart" :style="{height:height,width:width}" />
 </template>
-
+<style lang="scss" scoped>
+.chart {
+  width: 100% !important;
+  overflow: scroll !important;
+}
+</style>
 <script>
 import echarts from 'echarts'
 require('echarts/theme/macarons') // echarts theme
 import resize from './mixins/resize'
 
 export default {
-  mixins: [resize],
+  // mixins: [resize],
   props: {
     className: {
       type: String,

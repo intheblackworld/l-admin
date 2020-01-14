@@ -40,8 +40,8 @@
         plain
         @click="conversionReq.time = time.value"
       >{{ time.label }}</el-button>
-      <br>
-      <br>
+      <br />
+      <br />
       <span style="margin-right: 10px;color: #999;">地區</span>
       <el-select
         v-model="conversionReq.address"
@@ -73,8 +73,8 @@
       <el-select v-model="conversionReq.age" placeholder="不限" multiple style="margin-right: 10px;">
         <el-option v-for="age in ageList" :key="age" :label="age" :value="age" />
       </el-select>
-      <br>
-      <br>
+      <br />
+      <br />
       <span style="margin-right: 10px;color: #999;">時間格式</span>
       <el-button
         v-for="time in timeList"
@@ -175,7 +175,7 @@ export default {
   components: {
     // GithubCorner,
     PanelGroup,
-    LineChart
+    LineChart,
     // RaddarChart,
     // PieChart,
     // BarChart,
@@ -204,60 +204,60 @@ export default {
         32,
         33,
         34,
-        35
+        35,
       ],
       genderList: [
         {
           label: '男生',
-          value: '0'
+          value: '0',
         },
         {
           label: '女生',
-          value: '1'
-        }
+          value: '1',
+        },
       ],
       faceList: [5, 6, 6.5, 7, 7.5, 8, 8.5, 9],
       nearList: [
         {
           label: '最近一週',
-          value: 'one_week'
+          value: 'one_week',
         },
         {
           label: '最近一個月',
-          value: 'one_month'
+          value: 'one_month',
         },
         {
           label: '最近三個月',
-          value: 'three_month'
+          value: 'three_month',
         },
         {
           label: '最近六個月',
-          value: 'six_month'
+          value: 'six_month',
         },
         {
           label: '最近一年',
-          value: 'twelve_month'
-        }
+          value: 'twelve_month',
+        },
       ],
       timeList: [
         {
           label: '月',
-          value: 'month'
+          value: 'month',
         },
         {
           label: '週',
-          value: 'week'
+          value: 'week',
         },
         {
           label: '天',
-          value: 'day'
-        }
+          value: 'day',
+        },
       ],
       lineChartData: {
         people: {},
         date: {},
         pay: {},
-        vip: {}
+        vip: {},
       },
       currentLineChartData: [
         {
@@ -266,7 +266,7 @@ export default {
           transData: [],
           transNames: [],
           colors: [],
-          xAxis: []
+          xAxis: [],
         },
         {
           countData: [],
@@ -274,12 +274,12 @@ export default {
           transData: [],
           transNames: [],
           colors: [],
-          xAxis: []
-        }
+          xAxis: [],
+        },
       ],
       lineChartOption: {},
       outlineReq: {
-        time: 'one_month'
+        time: 'one_month',
       },
       conversionReq: {
         address: [],
@@ -287,41 +287,41 @@ export default {
         gender: [],
         face: [],
         // range: [],
-        time: 'one_month'
+        time: 'one_month',
       },
       outlineData: {
         totalPeople: {
           boy: {
             use: 0, // 開始使用
-            regist: 0 // 註冊完成
+            regist: 0, // 註冊完成
           },
           girl: {
             use: 0, // 開始使用
-            regist: 0 // 註冊完成
-          }
+            regist: 0, // 註冊完成
+          },
         },
         totalDate: {
           success: 0, // 成功
           progress: 0, // 進行中
-          fail: 0 // 失敗
+          fail: 0, // 失敗
         },
         totalPay: {
           people: 0,
-          amount: 0
+          amount: 0,
         },
         totalVIP: {
           silver: 0, // VIP 白銀
-          gold: 0 // VIP 黃金
-        }
+          gold: 0, // VIP 黃金
+        },
       },
       conversionData: {
         people: {},
         date: {},
         pay: {},
-        vip: {}
+        vip: {},
       },
       timeType: 'week',
-      chartType: 'people'
+      chartType: 'people',
     }
   },
   watch: {
@@ -336,7 +336,7 @@ export default {
           })
       },
       immediate: true,
-      deep: true
+      deep: true,
     },
     conversionReq: {
       handler(newName, oldName) {
@@ -352,14 +352,14 @@ export default {
             console.log(err)
           })
       },
-      deep: true
+      deep: true,
     },
 
     timeType() {
       this.transRegistTrend()
       this.transDateTrend()
       this.currentLineChartData = this.lineChartData[this.chartType]
-    }
+    },
   },
   created() {
     fetchConversion(this.conversionReq)
@@ -389,7 +389,7 @@ export default {
           transData: [],
           transNames: [],
           colors: [],
-          xAxis: []
+          xAxis: [],
         },
         {
           countData: [],
@@ -397,8 +397,8 @@ export default {
           transData: [],
           transNames: [],
           colors: [],
-          xAxis: []
-        }
+          xAxis: [],
+        },
       ]
     },
 
@@ -451,10 +451,15 @@ export default {
           k = allDays / countDays
           xAxis = _.reverse(
             _.range(k).map(index => {
-              const weekRange = getLastWeek(index)
-              return `${weekRange[0]} ~ ${weekRange[1]}`
+              return `${this.generateDate(moment().subtract('w', index).subtract('d', 7))} ~ ${this.generateDate(moment().subtract('w', index))}`
             }),
           )
+          // xAxis = _.reverse(
+          //   _.range(k).map(index => {
+          //     const weekRange = getLastWeek(index)
+          //     return `${weekRange[0]} ~ ${weekRange[1]}`
+          //   }),
+          // )
           break
         case 'month':
           countDays = 28
@@ -472,12 +477,18 @@ export default {
       return {
         k,
         countDays,
-        xAxis
+        xAxis,
       }
     },
 
     // 計算符合時間的條件的數量
     calculateList(list, key, k, countDays, timeKey) {
+      // const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
+      // const last_monday = moment().subtract(weekOfDay + 7 * i - 1, 'days').format('YYYY-MM-DD') // 周一日期
+      // const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days').format('YYYY-MM-DD') // 周日日期
+      // return [last_monday, last_sunday]
+      // const weekRange = getLastWeek(index)
+      // return `${weekRange[0]} ~ ${weekRange[1]}`
       const countList = []
       _.range(k).forEach(i => {
         const fit = list[key].filter(item => {
@@ -491,7 +502,7 @@ export default {
           )
         })
         if (i == 0) {
-          console.log(fit)
+          console.log(key, fit)
         }
         countList.push(fit.length)
       })
@@ -525,7 +536,7 @@ export default {
 
     calculateTrans(fractionList, denominatorList) {
       return denominatorList.map(
-        (denominator, index) => (fractionList[index] / denominator) * 100,
+        (denominator, index) => ((fractionList[index] / denominator) * 100).toFixed(2),
       )
     },
 
@@ -533,33 +544,27 @@ export default {
     transRegistTrend() {
       const people = this.conversionData.people
       const { k, countDays, xAxis } = this.calculateOptions()
-      const boys = this.calculateList(
-        people,
-        'boy',
-        k,
-        countDays,
-        'createdAt',
-      )
+      const boys = this.calculateList(people, 'boy', k, countDays, 'first_use_time')
       const girls = this.calculateList(
         people,
         'girl',
         k,
         countDays,
-        'createdAt',
+        'first_use_time',
       )
       const regist_boys = this.calculateList(
         people,
         'regist_boy',
         k,
         countDays,
-        'createdAt',
+        'first_regist_time',
       )
       const regist_girls = this.calculateList(
         people,
         'regist_girl',
         k,
         countDays,
-        'createdAt',
+        'first_regist_time',
       )
       // 計算轉換率：註冊人數 / 使用人數
       const trans_boys = this.calculateTrans(regist_boys, boys)
@@ -571,12 +576,12 @@ export default {
             '男生註冊人數',
             '女生註冊人數',
             '男生使用人數',
-            '女生使用人數'
+            '女生使用人數',
           ],
           transData: [],
           transNames: [],
           xAxis,
-          colors: ['#3888fa', '#FF005A', '#A2B6D2', '#E5A8BD']
+          colors: ['#3888fa', '#FF005A', '#A2B6D2', '#E5A8BD'],
         },
         {
           countData: [],
@@ -584,8 +589,8 @@ export default {
           transData: [trans_boys, trans_girls],
           transNames: ['男生註冊轉換率', '女生註冊轉換率'],
           colors: ['#3888fa', '#FF005A'],
-          xAxis
-        }
+          xAxis,
+        },
       ]
     },
 
@@ -598,31 +603,30 @@ export default {
         'success',
         k,
         countDays,
-        'createdAt',
+        'updatedAt',
       )
       const progress = this.calculateList(
         date,
         'progress',
         k,
         countDays,
-        'createdAt',
+        'updatedAt',
       )
       const waiting = this.calculateList(
         date,
         'waiting',
         k,
         countDays,
-        'createdAt',
+        'updatedAt',
       )
-      const fail = this.calculateList(date, 'fail', k, countDays, 'createdAt')
+      const fail = this.calculateList(date, 'fail', k, countDays, 'updatedAt')
 
-      const total = this.calculateList(date, 'total', k, countDays, 'createdAt')
-      console.log(success)
-      console.log(waiting)
-      console.log(progress)
-      console.log(fail)
-      console.log(total)
-      
+      const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')
+      // console.log(success)
+      // console.log(waiting)
+      // console.log(progress)
+      // console.log(fail)
+      // console.log(total)
 
       // 計算轉換率：約會(成功/等待/進行/失敗) / 總約會
       const trans_success = this.calculateTrans(success, total)
@@ -636,16 +640,21 @@ export default {
           transData: [],
           transNames: [],
           xAxis,
-          colors: ['#42f598', '#cf8b1f', '#2966a6', '#e62958']
+          colors: ['#42f598', '#cf8b1f', '#2966a6', '#e62958'],
         },
         {
           countData: [],
           countNames: [],
           transData: [trans_success, trans_waiting, trans_progress, trans_fail],
-          transNames: ['約會成功率', '約會等待比率', '約會進行中比率', '約會失敗率'],
+          transNames: [
+            '約會成功率',
+            '約會等待比率',
+            '約會進行中比率',
+            '約會失敗率',
+          ],
           colors: ['#42f598', '#cf8b1f', '#2966a6', '#e62958'],
-          xAxis
-        }
+          xAxis,
+        },
       ]
     },
 
@@ -675,7 +684,7 @@ export default {
           transData: [],
           transNames: [],
           colors: ['#EED367', '#A167EE'],
-          xAxis
+          xAxis,
         },
         {
           countData: [],
@@ -683,12 +692,12 @@ export default {
           transData: [],
           transNames: [],
           colors: [],
-          xAxis
+          xAxis,
           // transData: [trans_success, trans_progress, trans_fail],
           // transNames: ['約會成功率', '約會進行中比率', '約會失敗率'],
           // colors: ['#51E57B', '#ECC436', '#E72B2B'],
           // xAxis,
-        }
+        },
       ]
     },
 
@@ -718,7 +727,7 @@ export default {
           transData: [],
           transNames: [],
           colors: ['#82A9AF', '#FCEC07'],
-          xAxis
+          xAxis,
         },
         {
           countData: [],
@@ -726,15 +735,15 @@ export default {
           transData: [],
           transNames: [],
           colors: [],
-          xAxis
+          xAxis,
           // transData: [trans_success, trans_progress, trans_fail],
           // transNames: ['約會成功率', '約會進行中比率', '約會失敗率'],
           // colors: ['#51E57B', '#ECC436', '#E72B2B'],
           // xAxis,
-        }
+        },
       ]
-    }
-  }
+    },
+  },
 }
 </script>
 

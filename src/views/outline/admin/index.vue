@@ -240,18 +240,18 @@ export default {
         },
       ],
       timeList: [
-        {
-          label: '月',
-          value: 'month',
-        },
+        // {
+        //   label: '月',
+        //   value: 'month',
+        // },
         {
           label: '週',
           value: 'week',
         },
-        {
-          label: '天',
-          value: 'day',
-        },
+        // {
+        //   label: '天',
+        //   value: 'day',
+        // },
       ],
       lineChartData: {
         people: {},
@@ -418,18 +418,68 @@ export default {
     calculateOptions() {
       let k // 幾個節點
       let allDays // 時間範圍
+      let timeRange // 真實的值 不format
       let countDays // 時間區間 月 週 天
       let xAxis // 橫軸節點名稱
 
+      const getLastWeekValue = i => {
+        const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
+        const last_monday = moment()
+          .subtract(weekOfDay + 7 * i - 1, 'days') // 周一日期
+        const last_sunday = moment()
+          .subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
+        return [last_monday, last_sunday]
+      }
+
       switch (this.conversionReq.time) {
+        // 計算一個月有幾天
+        // moment().subtract(index, 'month').startOf('month').daysInMonth()
         case 'one_week':
           allDays = 7
           break
         case 'one_month':
-          allDays = 28
+          allDays = moment()
+            .startOf('month')
+            .daysInMonth()
           break
         case 'three_month':
-          allDays = 28 * 3
+          allDays =
+            moment()
+              .subtract(2, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(1, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(0, 'month')
+              .startOf('month')
+              .daysInMonth()
+          break
+        case 'six_month':
+          allDays =
+            moment()
+              .subtract(5, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(4, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(3, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(2, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(1, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment().daysInMonth()
           break
         default:
           allDays = 28
@@ -439,7 +489,7 @@ export default {
       switch (this.timeType) {
         case 'day':
           countDays = 1
-          k = allDays / countDays
+          k = Math.round(allDays / countDays)
           xAxis = _.reverse(
             _.range(k).map(index => {
               return this.generateDate(moment().subtract('d', index))
@@ -448,25 +498,30 @@ export default {
           break
         case 'week':
           countDays = 7
-          k = allDays / countDays
-          xAxis = _.reverse(
-            _.range(k).map(index => {
-              return `${this.generateDate(moment().subtract('w', index).subtract('d', 7))} ~ ${this.generateDate(moment().subtract('w', index))}`
-            }),
-          )
+          k = Math.round(allDays / countDays)
           // xAxis = _.reverse(
           //   _.range(k).map(index => {
-          //     const weekRange = getLastWeek(index)
-          //     return `${weekRange[0]} ~ ${weekRange[1]}`
+          //     return `${this.generateDate(moment().subtract('w', index).subtract('d', 7))} ~ ${this.generateDate(moment().subtract('w', index))}`
           //   }),
           // )
+          xAxis = _.reverse(
+            _.range(k).map(index => {
+              const weekRange = getLastWeek(index)
+              return `${weekRange[0]}(一) ~ ${weekRange[1]}(日)`
+            }),
+          )
+
+          timeRange = [getLastWeekValue(k - 1)[0], getLastWeekValue(0)[1]]
           break
         case 'month':
           countDays = 28
-          k = allDays / countDays
+          k = Math.round(allDays / countDays)
           xAxis = _.reverse(
             _.range(k).map(index => {
-              return this.generateMonth(moment().subtract('M', index))
+              return `${moment()
+                .subtract(index, 'month')
+                .startOf('month')
+                .format('MM')}月`
             }),
           )
           break
@@ -478,32 +533,45 @@ export default {
         k,
         countDays,
         xAxis,
+        timeRange
       }
     },
 
     // 計算符合時間的條件的數量
-    calculateList(list, key, k, countDays, timeKey) {
-      // const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
-      // const last_monday = moment().subtract(weekOfDay + 7 * i - 1, 'days').format('YYYY-MM-DD') // 周一日期
-      // const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days').format('YYYY-MM-DD') // 周日日期
+    calculateList(list, key, k, countDays, timeKey, timeRange) {
+      // this.calculateList(people, 'boy', k, countDays, 'first_use_time', [])
+      // list: 資料
+      // key: 鍵值(boy, girl, regist_boy, regist_girl, success_date ....)
+      // k: k棒數量
+      // countDays: 計算天數
+      // timeKey: 計算的key
+      // timeRange: [最前面的那一週的禮拜一, 本週的禮拜天]
+      const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
       // return [last_monday, last_sunday]
       // const weekRange = getLastWeek(index)
       // return `${weekRange[0]} ~ ${weekRange[1]}`
       const countList = []
       _.range(k).forEach(i => {
+        const last_monday = moment().subtract(weekOfDay + 7 * i - 1 + 1, 'days') // 周一日期
+        const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
+
+        // if (key === 'regist_girl') {
+        //   console.log('last_monday', last_monday.format('YYYY-MM-DD'))
+        //   console.log('last_sunday', last_sunday.format('YYYY-MM-DD'))
+        // }
         const fit = list[key].filter(item => {
           return (
             moment(item[timeKey]).isBefore(
-              moment().subtract(countDays * i, 'days'),
+              last_sunday,
             ) &&
             moment(item[timeKey]).isAfter(
-              moment().subtract(countDays * (i + 1), 'days'),
+              last_monday,
             )
           )
         })
-        if (i == 0) {
-          console.log(key, fit)
-        }
+        // if (key == 'regist_girl') {
+        //   console.log(key, fit)
+        // }
         countList.push(fit.length)
       })
       return _.reverse(countList)
@@ -512,14 +580,17 @@ export default {
     // 計算符合時間的條件的金額
     calculateMoneyList(list, key, k, countDays, timeKey) {
       const countList = []
+      const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
       _.range(k).forEach(i => {
         const fit = list[key].filter(item => {
+          const last_monday = moment().subtract(weekOfDay + 7 * i - 1 + 1, 'days') // 周一日期
+          const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
           return (
             moment(item[timeKey]).isBefore(
-              moment().subtract(countDays * i, 'days'),
+              last_sunday,
             ) &&
             moment(item[timeKey]).isAfter(
-              moment().subtract(countDays * (i + 1), 'days'),
+              last_monday
             )
           )
         })
@@ -535,22 +606,30 @@ export default {
     },
 
     calculateTrans(fractionList, denominatorList) {
-      return denominatorList.map(
-        (denominator, index) => ((fractionList[index] / denominator) * 100).toFixed(2),
+      return denominatorList.map((denominator, index) =>
+        ((fractionList[index] / denominator) * 100).toFixed(2),
       )
     },
 
     // 轉換註冊相關資料
     transRegistTrend() {
       const people = this.conversionData.people
-      const { k, countDays, xAxis } = this.calculateOptions()
-      const boys = this.calculateList(people, 'boy', k, countDays, 'first_use_time')
+      const { k, countDays, xAxis, timeRange } = this.calculateOptions()
+      const boys = this.calculateList(
+        people,
+        'boy',
+        k,
+        countDays,
+        'first_use_time',
+        timeRange,
+      )
       const girls = this.calculateList(
         people,
         'girl',
         k,
         countDays,
         'first_use_time',
+        timeRange,
       )
       const regist_boys = this.calculateList(
         people,
@@ -558,6 +637,7 @@ export default {
         k,
         countDays,
         'first_regist_time',
+        timeRange,
       )
       const regist_girls = this.calculateList(
         people,
@@ -565,6 +645,7 @@ export default {
         k,
         countDays,
         'first_regist_time',
+        timeRange,
       )
       // 計算轉換率：註冊人數 / 使用人數
       const trans_boys = this.calculateTrans(regist_boys, boys)
@@ -633,6 +714,8 @@ export default {
       const trans_waiting = this.calculateTrans(waiting, total)
       const trans_progress = this.calculateTrans(progress, total)
       const trans_fail = this.calculateTrans(fail, total)
+      console.log(total)
+      console.log(trans_success, trans_waiting, trans_progress, trans_fail)
       this.lineChartData.date = [
         {
           countData: [success, waiting, progress, fail],
@@ -661,7 +744,7 @@ export default {
     // 轉換付費相關資料
     transPayTrend() {
       const pay = this.conversionData.pay
-      const { k, countDays, xAxis } = this.calculateOptions()
+      const { k, countDays, xAxis, timeRange } = this.calculateOptions()
       const money = this.calculateMoneyList(
         pay,
         'money',
@@ -669,7 +752,7 @@ export default {
         countDays,
         'datetime',
       )
-      const people = this.calculateList(pay, 'people', k, countDays, 'datetime')
+      const people = this.calculateList(pay, 'people', k, countDays, 'datetime', timeRange)
       // console.log(money, people)
       // const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')
 
@@ -704,16 +787,17 @@ export default {
     // 轉換付費相關資料
     transVipTrend() {
       const vip = this.conversionData.vip
-      const { k, countDays, xAxis } = this.calculateOptions()
+      const { k, countDays, xAxis, timeRange } = this.calculateOptions()
       const silver = this.calculateList(
         vip,
         'silver',
         k,
         countDays,
         'upgrade_time',
+        timeRange
       )
 
-      const gold = this.calculateList(vip, 'gold', k, countDays, 'upgrade_time')
+      const gold = this.calculateList(vip, 'gold', k, countDays, 'upgrade_time', timeRange)
       // const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')
 
       // 計算轉換率：約會(成功/進行/失敗) / 總約會

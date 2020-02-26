@@ -17,7 +17,7 @@
       :total-v-i-p="outlineData.totalVIP"
       @handleSetLineChartData="handleSetLineChartData"
     />
-    <h3>註冊報表</h3>
+    <h3>報表</h3>
     <el-row style="background:#fff;padding:16px 16px 16px;margin-bottom:32px;">
       <span style="margin-right: 10px;color: #999;">時間區間</span>
       <!-- <el-date-picker
@@ -85,6 +85,12 @@
         plain
         @click="timeType = time.value"
       >{{ time.label }}</el-button>
+    </el-row>
+    <!-- 約會失敗原因 -->
+    <el-row v-if="chartType == 'date'" style="background:#fff;padding:16px 16px 0;">
+      約會失敗原因：
+      <br />
+      <div v-html="reasonResult"></div>
     </el-row>
     <!-- 數量 -->
     <el-row style="background:#fff;padding:16px 16px 0;">
@@ -168,6 +174,7 @@ import LineChart from './components/LineChart'
 import _ from 'lodash'
 import moment from 'moment'
 import { getLastWeek } from '@/utils/date'
+import status from '@/utils/status'
 import { fetchOutline, fetchConversion } from '@/api/trend'
 
 export default {
@@ -185,6 +192,7 @@ export default {
   },
   data() {
     return {
+      reasonResult: '',
       addressList: ['台北', '桃園', '新竹', '台中', '台南', '高雄'],
       ageList: [
         18,
@@ -248,10 +256,10 @@ export default {
           label: '週',
           value: 'week',
         },
-        // {
-        //   label: '天',
-        //   value: 'day',
-        // },
+        {
+          label: '天',
+          value: 'day',
+        },
       ],
       lineChartData: {
         people: {},
@@ -346,6 +354,7 @@ export default {
             this.transRegistTrend()
             this.transDateTrend()
             this.transPayTrend()
+            this.countFailReason(res.data.date.fail)
             this.currentLineChartData = this.lineChartData[this.chartType]
           })
           .catch(err => {
@@ -369,6 +378,7 @@ export default {
         this.transDateTrend()
         this.transPayTrend()
         this.transVipTrend()
+        this.countFailReason(res.data.date.fail)
         this.currentLineChartData = this.lineChartData['people']
       })
       .catch(err => {
@@ -376,6 +386,30 @@ export default {
       })
   },
   methods: {
+    countFailReason(failDateproduct) {
+      // 計算約會失敗原因
+      const failReasons = failDateproduct.map(date => date.status)
+      const counts = {}
+      for (var i = 0; i < failReasons.length; i++) {
+        var num = failReasons[i]
+        counts[num] = counts[num] ? counts[num] + 1 : 1
+      }
+      let reasons = Object.keys(counts).map(key => ({
+        reason: key,
+        count: counts[key],
+      }))
+      reasons = _.orderBy(reasons, ['count'], ['desc'])
+
+      const reasonResult = reasons
+        .map(
+          item =>
+            `${
+              _.find(status.dateProductStatusList, { value: item.reason }).text
+            }：${item.count}次`,
+        )
+        .join('<br />')
+      this.reasonResult = reasonResult
+    },
     handleSetLineChartData(type) {
       this.chartType = type
       this.currentLineChartData = this.lineChartData[type]
@@ -424,10 +458,8 @@ export default {
 
       const getLastWeekValue = i => {
         const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
-        const last_monday = moment()
-          .subtract(weekOfDay + 7 * i - 1, 'days') // 周一日期
-        const last_sunday = moment()
-          .subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
+        const last_monday = moment().subtract(weekOfDay + 7 * i - 1, 'days') // 周一日期
+        const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
         return [last_monday, last_sunday]
       }
 
@@ -533,7 +565,7 @@ export default {
         k,
         countDays,
         xAxis,
-        timeRange
+        timeRange,
       }
     },
 
@@ -562,10 +594,14 @@ export default {
         const fit = list[key].filter(item => {
           return (
             moment(item[timeKey]).isBefore(
-              last_sunday,
+              this.timeType === 'week'
+                ? last_sunday
+                : moment().subtract(countDays * i, 'days'),
             ) &&
             moment(item[timeKey]).isAfter(
-              last_monday,
+              this.timeType === 'week'
+                ? last_monday
+                : moment().subtract(countDays * (i + 1), 'days'),
             )
           )
         })
@@ -583,14 +619,21 @@ export default {
       const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
       _.range(k).forEach(i => {
         const fit = list[key].filter(item => {
-          const last_monday = moment().subtract(weekOfDay + 7 * i - 1 + 1, 'days') // 周一日期
+          const last_monday = moment().subtract(
+            weekOfDay + 7 * i - 1 + 1,
+            'days',
+          ) // 周一日期
           const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
           return (
             moment(item[timeKey]).isBefore(
-              last_sunday,
+              this.timeType === 'week'
+                ? last_sunday
+                : moment().subtract(countDays * i, 'days'),
             ) &&
             moment(item[timeKey]).isAfter(
-              last_monday
+              this.timeType === 'week'
+                ? last_monday
+                : moment().subtract(countDays * (i + 1), 'days'),
             )
           )
         })
@@ -714,8 +757,6 @@ export default {
       const trans_waiting = this.calculateTrans(waiting, total)
       const trans_progress = this.calculateTrans(progress, total)
       const trans_fail = this.calculateTrans(fail, total)
-      console.log(total)
-      console.log(trans_success, trans_waiting, trans_progress, trans_fail)
       this.lineChartData.date = [
         {
           countData: [success, waiting, progress, fail],
@@ -752,7 +793,14 @@ export default {
         countDays,
         'datetime',
       )
-      const people = this.calculateList(pay, 'people', k, countDays, 'datetime', timeRange)
+      const people = this.calculateList(
+        pay,
+        'people',
+        k,
+        countDays,
+        'datetime',
+        timeRange,
+      )
       // console.log(money, people)
       // const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')
 
@@ -794,10 +842,17 @@ export default {
         k,
         countDays,
         'upgrade_time',
-        timeRange
+        timeRange,
       )
 
-      const gold = this.calculateList(vip, 'gold', k, countDays, 'upgrade_time', timeRange)
+      const gold = this.calculateList(
+        vip,
+        'gold',
+        k,
+        countDays,
+        'upgrade_time',
+        timeRange,
+      )
       // const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')
 
       // 計算轉換率：約會(成功/進行/失敗) / 總約會
@@ -853,6 +908,10 @@ export default {
 
 @media (max-width: 1024px) {
   .chart-wrapper {
+    padding: 8px;
+  }
+
+  .dashboard-editor-container {
     padding: 8px;
   }
 }

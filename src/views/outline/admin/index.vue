@@ -299,6 +299,10 @@ export default {
       },
       outlineData: {
         totalPeople: {
+          all: {
+            use: 0, // 開始使用
+            regist: 0 // 選擇性別
+          },
           boy: {
             use: 0, // 開始使用
             regist: 0, // 註冊完成

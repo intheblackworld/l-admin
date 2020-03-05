@@ -8,6 +8,21 @@
         <div class="card-panel-description">
           <div class="card-panel-text">總人數(註冊完成/開始使用)</div>
           <div>
+            選擇性別/開始使用：
+            <count-to
+              :start-val="0"
+              :end-val="totalPeople.all.regist"
+              :duration="1500"
+              class="card-panel-num"
+            />/
+            <count-to
+              :start-val="0"
+              :end-val="totalPeople.all.use"
+              :duration="1500"
+              class="card-panel-num"
+            />
+          </div>
+          <div>
             男生：
             <count-to
               :start-val="0"
@@ -182,7 +197,7 @@ export default {
   }
 
   .card-panel {
-    height: 108px;
+    height: 132px;
     cursor: pointer;
     font-size: 12px;
     position: relative;

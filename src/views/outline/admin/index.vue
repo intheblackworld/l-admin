@@ -662,6 +662,14 @@ export default {
     transRegistTrend() {
       const people = this.conversionData.people
       const { k, countDays, xAxis, timeRange } = this.calculateOptions()
+      const alls = this.calculateList(
+        people,
+        'all',
+        k,
+        countDays,
+        'createdAt',
+        timeRange,
+      )
       const boys = this.calculateList(
         people,
         'boy',
@@ -673,6 +681,15 @@ export default {
       const girls = this.calculateList(
         people,
         'girl',
+        k,
+        countDays,
+        'first_use_time',
+        timeRange,
+      )
+
+      const regist_alls = this.calculateList(
+        people,
+        'regist_all',
         k,
         countDays,
         'first_use_time',
@@ -699,8 +716,10 @@ export default {
       const trans_girls = this.calculateTrans(regist_girls, girls)
       this.lineChartData.people = [
         {
-          countData: [regist_boys, regist_girls, boys, girls],
+          countData: [alls, regist_alls, regist_boys, regist_girls, boys, girls],
           countNames: [
+            '點擊開始使用人數',
+            '選擇了性別人數',
             '男生註冊人數',
             '女生註冊人數',
             '男生使用人數',
@@ -709,7 +728,7 @@ export default {
           transData: [],
           transNames: [],
           xAxis,
-          colors: ['#3888fa', '#FF005A', '#A2B6D2', '#E5A8BD'],
+          colors: ['#666', '#000', '#3888fa', '#FF005A', '#A2B6D2', '#E5A8BD'],
         },
         {
           countData: [],

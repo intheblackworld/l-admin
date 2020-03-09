@@ -864,7 +864,7 @@ export default {
         'silver',
         k,
         countDays,
-        'upgrade_time',
+        'datetime',
         timeRange,
       )
 
@@ -873,7 +873,7 @@ export default {
         'gold',
         k,
         countDays,
-        'upgrade_time',
+        'datetime',
         timeRange,
       )
       // const total = this.calculateList(date, 'total', k, countDays, 'updatedAt')

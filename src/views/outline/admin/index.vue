@@ -358,6 +358,7 @@ export default {
             this.transRegistTrend()
             this.transDateTrend()
             this.transPayTrend()
+            this.transVipTrend()
             this.countFailReason(res.data.date.fail)
             this.currentLineChartData = this.lineChartData[this.chartType]
           })
@@ -517,6 +518,54 @@ export default {
               .daysInMonth() +
             moment().daysInMonth()
           break
+          case 'twelve_month':
+            allDays =
+            moment()
+              .subtract(11, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(10, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(9, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(8, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(7, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(6, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(5, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(4, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(3, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(2, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment()
+              .subtract(1, 'month')
+              .startOf('month')
+              .daysInMonth() +
+            moment().daysInMonth()
+            break
         default:
           allDays = 28
           break
@@ -535,6 +584,7 @@ export default {
         case 'week':
           countDays = 7
           k = Math.round(allDays / countDays)
+          console.log(allDays, k)
           // xAxis = _.reverse(
           //   _.range(k).map(index => {
           //     return `${this.generateDate(moment().subtract('w', index).subtract('d', 7))} ~ ${this.generateDate(moment().subtract('w', index))}`

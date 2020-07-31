@@ -49,7 +49,12 @@
         multiple
         style="margin-right: 10px;"
       >
-        <el-option v-for="address in addressList" :key="address" :label="address" :value="address" />
+        <el-option
+          v-for="address in addressList"
+          :key="address"
+          :label="address"
+          :value="address"
+        />
       </el-select>
       <span style="margin-right: 10px;color: #999;">性別</span>
       <!-- <el-select
@@ -66,12 +71,32 @@
         />
       </el-select>-->
       <span style="margin-right: 10px;color: #999;">分數</span>
-      <el-select v-model="conversionReq.face" placeholder="不限" multiple style="margin-right: 10px;">
-        <el-option v-for="face in faceList" :key="face" :label="face" :value="face" />>
+      <el-select
+        v-model="conversionReq.face"
+        placeholder="不限"
+        multiple
+        style="margin-right: 10px;"
+      >
+        <el-option
+          v-for="face in faceList"
+          :key="face"
+          :label="face"
+          :value="face"
+        />>
       </el-select>
       <span style="margin-right: 10px;color: #999;">年齡</span>
-      <el-select v-model="conversionReq.age" placeholder="不限" multiple style="margin-right: 10px;">
-        <el-option v-for="age in ageList" :key="age" :label="age" :value="age" />
+      <el-select
+        v-model="conversionReq.age"
+        placeholder="不限"
+        multiple
+        style="margin-right: 10px;"
+      >
+        <el-option
+          v-for="age in ageList"
+          :key="age"
+          :label="age"
+          :value="age"
+        />
       </el-select>
       <br />
       <br />
@@ -86,8 +111,19 @@
         @click="timeType = time.value"
       >{{ time.label }}</el-button>
     </el-row>
+    <el-row
+      v-if="chartType == 'vip'"
+      style="background:#fff;padding:16px 16px 0;"
+    >
+      會員留存率結果：
+      <br />
+      <div v-html="stayData"></div>
+    </el-row>
     <!-- 約會失敗原因 -->
-    <el-row v-if="chartType == 'date'" style="background:#fff;padding:16px 16px 0;">
+    <el-row
+      v-if="chartType == 'date'"
+      style="background:#fff;padding:16px 16px 0;"
+    >
       約會失敗原因：
       <br />
       <div v-html="reasonResult"></div>
@@ -192,6 +228,7 @@ export default {
   },
   data() {
     return {
+      stayData: '',
       reasonResult: '',
       addressList: ['台北', '桃園', '新竹', '台中', '台南', '高雄'],
       ageList: [
@@ -301,7 +338,7 @@ export default {
         totalPeople: {
           all: {
             use: 0, // 開始使用
-            regist: 0 // 選擇性別
+            regist: 0, // 選擇性別
           },
           boy: {
             use: 0, // 開始使用
@@ -360,6 +397,7 @@ export default {
             this.transPayTrend()
             this.transVipTrend()
             this.countFailReason(res.data.date.fail)
+            this.countStayRatio(res.data.vip)
             this.currentLineChartData = this.lineChartData[this.chartType]
           })
           .catch(err => {
@@ -414,6 +452,85 @@ export default {
         )
         .join('<br />')
       this.reasonResult = reasonResult
+    },
+
+    countStayRatio(data) {
+      console.log('count')
+      const a = _.groupBy(data.silver.concat(data.gold), item => {
+        return moment(item.datetime)
+          .startOf('month')
+          .format('M月')
+      })
+
+      //  計算購買多個月會員的人數
+      let multiple3List = []
+      let multiple6List = []
+      Object.values(a).forEach((monthData, index) => {
+        // 3個月人數
+        const mounth3Count = _.countBy(
+          monthData,
+          person => person.money > 1300 && person.money < 3300,
+        )
+        // 6個月人數
+        const mounth6Count = _.countBy(monthData, person => person.money > 3300)
+
+        const month3Array = _.range(3 + index).map(i => {
+          if (i < index) {
+            return 0
+          } else {
+            return mounth3Count[true] || 0
+          }
+        })
+
+        const month6Array = _.range(6 + index).map(i => {
+          if (i < index) {
+            return 0
+          } else {
+            return mounth6Count[true] || 0
+          }
+        })
+        multiple3List.push(month3Array)
+        multiple6List.push(month6Array)
+      })
+      function sumArrays(...arrays) {
+        const n = arrays.reduce((max, xs) => Math.max(max, xs.length), 0)
+        const result = Array.from({ length: n })
+        return result.map((_, i) =>
+          arrays.map(xs => xs[i] || 0).reduce((sum, x) => sum + x, 0),
+        )
+      }
+      // console.log(...multiple3List)
+      // console.log([0, 1, 2], [1, 2, 3, 4], [1, 2])
+      multiple3List = sumArrays(...multiple3List)
+      multiple6List = sumArrays(...multiple6List)
+      let multipleList = sumArrays(multiple3List, multiple6List)
+      // console.log(multipleList)
+
+      let result = [{ time: '', new: 0, old: 0 }]
+      Object.values(a).forEach((monthData, index) => {
+        if (index !== 0) {
+          // 主計算
+          const newVIP = _.differenceBy(
+            monthData,
+            Object.values(a)[index - 1],
+            'name',
+          )
+          const oldVIPLength =
+            monthData.length - newVIP.length + multipleList[index - 1]
+          result.push({
+            time: Object.keys(a)[index],
+            new: newVIP.length,
+            old: oldVIPLength,
+          })
+        }
+      })
+      // console.log(result)
+      this.stayData = result.map(
+        (item, index) =>
+          `${item.time}<br/>總會員數：${item.new + item.old}<br />留存會員數：${
+            item.old
+          }<br />新會員數：${item.new}<br />`,
+      ).join('<br />')
     },
     handleSetLineChartData(type) {
       this.chartType = type
@@ -518,8 +635,8 @@ export default {
               .daysInMonth() +
             moment().daysInMonth()
           break
-          case 'twelve_month':
-            allDays =
+        case 'twelve_month':
+          allDays =
             moment()
               .subtract(11, 'month')
               .startOf('month')
@@ -565,7 +682,7 @@ export default {
               .startOf('month')
               .daysInMonth() +
             moment().daysInMonth()
-            break
+          break
         default:
           allDays = 28
           break
@@ -766,7 +883,14 @@ export default {
       const trans_girls = this.calculateTrans(regist_girls, girls)
       this.lineChartData.people = [
         {
-          countData: [alls, regist_alls, regist_boys, regist_girls, boys, girls],
+          countData: [
+            alls,
+            regist_alls,
+            regist_boys,
+            regist_girls,
+            boys,
+            girls,
+          ],
           countNames: [
             '點擊開始使用人數',
             '選擇了性別人數',

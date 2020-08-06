@@ -285,10 +285,10 @@ export default {
         },
       ],
       timeList: [
-        // {
-        //   label: '月',
-        //   value: 'month',
-        // },
+        {
+          label: '月',
+          value: 'month',
+        },
         {
           label: '週',
           value: 'week',
@@ -410,6 +410,8 @@ export default {
     timeType() {
       this.transRegistTrend()
       this.transDateTrend()
+      this.transPayTrend()
+      this.transVipTrend()
       this.currentLineChartData = this.lineChartData[this.chartType]
     },
   },
@@ -531,6 +533,10 @@ export default {
             item.old
           }<br />新會員數：${item.new}<br />`,
       ).join('<br />')
+      // 留存率：${item.old /
+      //       (result[index - 1].new +
+      //         result[index - 1].old)}<br />增長率：${item.new /
+      //       result[index - 1].new}<br />
     },
     handleSetLineChartData(type) {
       this.chartType = type
@@ -1033,6 +1039,7 @@ export default {
     transVipTrend() {
       const vip = this.conversionData.vip
       const { k, countDays, xAxis, timeRange } = this.calculateOptions()
+      console.log('.....', timeRange)
       const silver = this.calculateList(
         vip,
         'silver',

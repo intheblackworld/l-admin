@@ -457,7 +457,6 @@ export default {
     },
 
     countStayRatio(data) {
-      console.log('count')
       const a = _.groupBy(data.silver.concat(data.gold), item => {
         return moment(item.datetime)
           .startOf('month')
@@ -505,10 +504,10 @@ export default {
       // console.log([0, 1, 2], [1, 2, 3, 4], [1, 2])
       multiple3List = sumArrays(...multiple3List)
       multiple6List = sumArrays(...multiple6List)
-      let multipleList = sumArrays(multiple3List, multiple6List)
+      const multipleList = sumArrays(multiple3List, multiple6List)
       // console.log(multipleList)
 
-      let result = [{ time: '', new: 0, old: 0 }]
+      const result = [{ time: '', new: 0, old: 0, all: Object.values(a)[0].length }]
       Object.values(a).forEach((monthData, index) => {
         if (index !== 0) {
           // 主計算
@@ -523,16 +522,19 @@ export default {
             time: Object.keys(a)[index],
             new: newVIP.length,
             old: oldVIPLength,
+            all: newVIP.length + oldVIPLength
           })
         }
       })
       // console.log(result)
-      this.stayData = result.map(
-        (item, index) =>
-          `${item.time}<br/>總會員數：${item.new + item.old}<br />留存會員數：${
-            item.old
-          }<br />新會員數：${item.new}<br />`,
-      ).join('<br />')
+      this.stayData = result
+        .map(
+          (item, index) =>
+            `${item.time}<br/>總會員數：${item.all}<br />留存會員數：${item.old}<br />新會員數：${
+              item.new
+            }<br />`,
+        )
+        .join('<br />')
       // 留存率：${item.old /
       //       (result[index - 1].new +
       //         result[index - 1].old)}<br />增長率：${item.new /
@@ -707,7 +709,7 @@ export default {
         case 'week':
           countDays = 7
           k = Math.round(allDays / countDays)
-          console.log(allDays, k)
+          // console.log(allDays, k)
           // xAxis = _.reverse(
           //   _.range(k).map(index => {
           //     return `${this.generateDate(moment().subtract('w', index).subtract('d', 7))} ~ ${this.generateDate(moment().subtract('w', index))}`
@@ -761,8 +763,35 @@ export default {
       // return `${weekRange[0]} ~ ${weekRange[1]}`
       const countList = []
       _.range(k).forEach(i => {
-        const last_monday = moment().subtract(weekOfDay + 7 * i - 1 + 1, 'days') // 周一日期
-        const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
+        const last_monday = moment()
+          .subtract(weekOfDay + 7 * i - 1 + 1, 'days')
+          .endOf('day') // 周一日期
+        const last_sunday = moment()
+          .subtract(weekOfDay + 7 * (i - 1), 'days')
+          .endOf('day') // 周日日期
+        let last_day
+        let first_day
+        if (this.timeType === 'day') {
+          last_day = moment()
+            .subtract(countDays * i, 'days')
+            .endOf('day')
+          first_day = moment()
+            .subtract(countDays * (i + 1), 'days')
+            .startOf('day')
+        }
+
+        if (this.timeType === 'week') {
+          last_day = last_sunday
+          first_day = last_monday
+        }
+        if (this.timeType === 'month') {
+          last_day = moment()
+            .subtract(i, 'months')
+            .endOf('month')
+          first_day = moment()
+            .subtract(i, 'months')
+            .startOf('month')
+        }
 
         // if (key === 'regist_girl') {
         //   console.log('last_monday', last_monday.format('YYYY-MM-DD'))
@@ -770,16 +799,8 @@ export default {
         // }
         const fit = list[key].filter(item => {
           return (
-            moment(item[timeKey]).isBefore(
-              this.timeType === 'week'
-                ? last_sunday
-                : moment().subtract(countDays * i, 'days'),
-            ) &&
-            moment(item[timeKey]).isAfter(
-              this.timeType === 'week'
-                ? last_monday
-                : moment().subtract(countDays * (i + 1), 'days'),
-            )
+            moment(item[timeKey]).isBefore(last_day) &&
+            moment(item[timeKey]).isAfter(first_day)
           )
         })
         // if (key == 'regist_girl') {
@@ -796,22 +817,38 @@ export default {
       const weekOfDay = parseInt(moment().format('E')) // 计算今天是这周第几天
       _.range(k).forEach(i => {
         const fit = list[key].filter(item => {
-          const last_monday = moment().subtract(
-            weekOfDay + 7 * i - 1 + 1,
-            'days',
-          ) // 周一日期
-          const last_sunday = moment().subtract(weekOfDay + 7 * (i - 1), 'days') // 周日日期
+          const last_monday = moment()
+            .subtract(weekOfDay + 7 * i - 1 + 1, 'days')
+            .endOf('day') // 周一日期
+          const last_sunday = moment()
+            .subtract(weekOfDay + 7 * (i - 1), 'days')
+            .endOf('day') // 周日日期
+          let last_day
+          let first_day
+          if (this.timeType === 'day') {
+            last_day = moment()
+              .subtract(countDays * i, 'days')
+              .endOf('day')
+            first_day = moment()
+              .subtract(countDays * (i + 1), 'days')
+              .startOf('day')
+          }
+
+          if (this.timeType === 'week') {
+            last_day = last_sunday
+            first_day = last_monday
+          }
+          if (this.timeType === 'month') {
+            last_day = moment()
+              .subtract(i, 'months')
+              .endOf('month')
+            first_day = moment()
+              .subtract(i, 'months')
+              .startOf('month')
+          }
           return (
-            moment(item[timeKey]).isBefore(
-              this.timeType === 'week'
-                ? last_sunday
-                : moment().subtract(countDays * i, 'days'),
-            ) &&
-            moment(item[timeKey]).isAfter(
-              this.timeType === 'week'
-                ? last_monday
-                : moment().subtract(countDays * (i + 1), 'days'),
-            )
+            moment(item[timeKey]).isBefore(last_day) &&
+            moment(item[timeKey]).isAfter(first_day)
           )
         })
         countList.push(
@@ -1039,7 +1076,7 @@ export default {
     transVipTrend() {
       const vip = this.conversionData.vip
       const { k, countDays, xAxis, timeRange } = this.calculateOptions()
-      console.log('.....', timeRange)
+      // console.log('.....', timeRange)
       const silver = this.calculateList(
         vip,
         'silver',
